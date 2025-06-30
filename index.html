@@ -1,21 +1,363 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta charset="">
-    <title>sigmo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Space Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #08f, 0 0 30px #08f;
+        }
+        
+        .neon-border {
+            box-shadow: 0 0 10px #08f, 0 0 20px #08f inset;
+        }
+        
+        .btn-glow {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-glow:hover {
+            box-shadow: 0 0 15px #08f, 0 0 30px #08f;
+            transform: scale(1.05);
+        }
+        
+        .btn-glow:active {
+            transform: scale(0.95);
+        }
+        
+        .display-text {
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+        }
+        
+        .cosmic-bg {
+            background: radial-gradient(circle at center, #0a0a2a 0%, #000 100%);
+        }
+        
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+            opacity: 0;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: var(--opacity); transform: scale(1); }
+        }
+    </style>
 </head>
-<body>
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgd3JAJfnx5-s13XvZnfKSRVo16Ea4KFr2wA&s" alt="">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgd3JAJfnx5-s13XvZnfKSRVo16Ea4KFr2wA&s" alt="">
-         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgd3JAJfnx5-s13XvZnfKSRVo16Ea4KFr2wA&s" alt="">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgd3JAJfnx5-s13XvZnfKSRVo16Ea4KFr2wA&s" alt="">
-         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgd3JAJfnx5-s13XvZnfKSRVo16Ea4KFr2wA&s" alt="">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgd3JAJfnx5-s13XvZnfKSRVo16Ea4KFr2wA&s" alt="">
-        <p>много сыров</p>
-      </video>
-      
+<body class="cosmic-bg min-h-screen flex items-center justify-center p-4 overflow-hidden">
+    <div class="stars" id="stars"></div>
+    
+    <div class="relative w-full max-w-md">
+        <!-- Калькулятор -->
+        <div class="bg-black bg-opacity-70 backdrop-blur-lg rounded-3xl overflow-hidden border border-blue-500 neon-border">
+            <!-- Заголовок -->
+            <div class="p-4 border-b border-blue-900 flex justify-between items-center">
+                <h1 class="text-xl font-bold neon-text">SPACE CALC</h1>
+                <div class="flex space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+            </div>
+            
+            <!-- Дисплей -->
+            <div class="p-5">
+                <div class="bg-gray-900 rounded-xl p-4 h-28 flex flex-col justify-end items-end overflow-hidden">
+                    <div id="history" class="text-gray-400 text-sm h-6 overflow-x-auto w-full text-right whitespace-nowrap"></div>
+                    <div id="display" class="display-text text-white text-4xl font-semibold mt-2 truncate w-full text-right"></div>
+                </div>
+            </div>
+            
+            <!-- Кнопки -->
+            <div class="grid grid-cols-4 gap-3 p-5">
+                <!-- Первый ряд -->
+                <button onclick="clearAll()" class="btn-glow bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition-all">AC</button>
+                <button onclick="toggleSign()" class="btn-glow bg-blue-900 hover:bg-blue-800 text-blue-300 font-bold py-3 rounded-xl transition-all">+/-</button>
+                <button onclick="percentage()" class="btn-glow bg-blue-900 hover:bg-blue-800 text-blue-300 font-bold py-3 rounded-xl transition-all">%</button>
+                <button onclick="setOperation('/')" class="btn-glow bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-all">÷</button>
+                
+                <!-- Второй ряд -->
+                <button onclick="appendNumber(7)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">7</button>
+                <button onclick="appendNumber(8)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">8</button>
+                <button onclick="appendNumber(9)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">9</button>
+                <button onclick="setOperation('*')" class="btn-glow bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-all">×</button>
+                
+                <!-- Третий ряд -->
+                <button onclick="appendNumber(4)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">4</button>
+                <button onclick="appendNumber(5)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">5</button>
+                <button onclick="appendNumber(6)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">6</button>
+                <button onclick="setOperation('-')" class="btn-glow bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-all">-</button>
+                
+                <!-- Четвертый ряд -->
+                <button onclick="appendNumber(1)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">1</button>
+                <button onclick="appendNumber(2)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">2</button>
+                <button onclick="appendNumber(3)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">3</button>
+                <button onclick="setOperation('+')" class="btn-glow bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-all">+</button>
+                
+                <!-- Пятый ряд -->
+                <button onclick="appendNumber(0)" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl col-span-2 transition-all">0</button>
+                <button onclick="appendDecimal()" class="btn-glow bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-all">.</button>
+                <button onclick="calculate()" class="btn-glow bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all">=</button>
+            </div>
+            
+            <!-- Дополнительные функции -->
+            <div class="px-5 pb-5 grid grid-cols-4 gap-3">
+                <button onclick="powerFunction()" class="btn-glow bg-purple-900 hover:bg-purple-800 text-purple-300 font-bold py-2 rounded-xl text-sm transition-all">x²</button>
+                <button onclick="squareRoot()" class="btn-glow bg-purple-900 hover:bg-purple-800 text-purple-300 font-bold py-2 rounded-xl text-sm transition-all">√</button>
+                <button onclick="sinFunction()" class="btn-glow bg-purple-900 hover:bg-purple-800 text-purple-300 font-bold py-2 rounded-xl text-sm transition-all">sin</button>
+                <button onclick="cosFunction()" class="btn-glow bg-purple-900 hover:bg-purple-800 text-purple-300 font-bold py-2 rounded-xl text-sm transition-all">cos</button>
+            </div>
+        </div>
+        
+        <!-- Анимация запуска -->
+        <div id="launchAnimation" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 hidden z-10 rounded-3xl">
+            <div class="text-center">
+                <div class="neon-text text-4xl mb-4">SPACE CALC</div>
+                <div class="text-blue-300 mb-6">Готов к вычислениям</div>
+                <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            </div>
+        </div>
+    </div>
+    
     <script>
-
+        // Инициализация переменных
+        let currentInput = '0';
+        let previousInput = '';
+        let operation = null;
+        let resetInput = false;
+        
+        // Элементы DOM
+        const display = document.getElementById('display');
+        const history = document.getElementById('history');
+        const starsContainer = document.getElementById('stars');
+        const launchAnimation = document.getElementById('launchAnimation');
+        
+        // Запуск анимации при загрузке
+        window.addEventListener('DOMContentLoaded', () => {
+            launchAnimation.classList.remove('hidden');
+            
+            // Создаем звезды для фона
+            createStars();
+            
+            setTimeout(() => {
+                launchAnimation.classList.add('hidden');
+                updateDisplay();
+            }, 2000);
+        });
+        
+        // Создание звездного фона
+        function createStars() {
+            const starCount = 100;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Случайные параметры звезды
+                const size = Math.random() * 3;
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const opacity = Math.random() * 0.8 + 0.2;
+                const duration = Math.random() * 5 + 3;
+                
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.setProperty('--opacity', opacity);
+                star.style.setProperty('--duration', `${duration}s`);
+                
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // Обновление дисплея
+        function updateDisplay() {
+            display.textContent = currentInput;
+            
+            // Форматирование длинных чисел
+            if (currentInput.length > 10) {
+                display.textContent = parseFloat(currentInput).toExponential(4);
+            }
+            
+            // Обновление истории
+            if (operation) {
+                history.textContent = `${previousInput} ${operation}`;
+            } else {
+                history.textContent = previousInput || '';
+            }
+        }
+        
+        // Добавление цифры
+        function appendNumber(number) {
+            if (currentInput === '0' || resetInput) {
+                currentInput = number.toString();
+                resetInput = false;
+            } else {
+                currentInput += number.toString();
+            }
+            updateDisplay();
+        }
+        
+        // Добавление десятичной точки
+        function appendDecimal() {
+            if (resetInput) {
+                currentInput = '0.';
+                resetInput = false;
+                updateDisplay();
+                return;
+            }
+            
+            if (!currentInput.includes('.')) {
+                currentInput += '.';
+                updateDisplay();
+            }
+        }
+        
+        // Выбор операции
+        function setOperation(op) {
+            if (operation && !resetInput) {
+                calculate();
+            }
+            
+            previousInput = currentInput;
+            operation = op;
+            resetInput = true;
+            updateDisplay();
+        }
+        
+        // Вычисление результата
+        function calculate() {
+            console.log('Calculating:', previousInput, operation, currentInput);
+            if (!operation || resetInput) return;
+            
+            let result;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+            
+            switch (operation) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    break;
+                case '/':
+                    result = prev / current;
+                    break;
+                default:
+                    return;
+            }
+            
+            // Добавляем анимацию для результата
+            animateResult();
+            
+            currentInput = result.toString();
+            operation = null;
+            resetInput = true;
+            updateDisplay();
+        }
+        
+        // Анимация результата
+        function animateResult() {
+            display.classList.add('animate-pulse');
+            setTimeout(() => {
+                display.classList.remove('animate-pulse');
+            }, 300);
+        }
+        
+        // Очистка всего
+        function clearAll() {
+            currentInput = '0';
+            previousInput = '';
+            operation = null;
+            updateDisplay();
+            
+            // Анимация очистки
+            display.classList.add('opacity-0', 'scale-90');
+            setTimeout(() => {
+                display.classList.remove('opacity-0', 'scale-90');
+            }, 300);
+        }
+        
+        // Изменение знака
+        function toggleSign() {
+            currentInput = (parseFloat(currentInput) * -1).toString();
+            updateDisplay();
+        }
+        
+        // Процент
+        function percentage() {
+            currentInput = (parseFloat(currentInput) / 100).toString();
+            updateDisplay();
+        }
+        
+        // Дополнительные функции
+        function powerFunction() {
+            currentInput = (Math.pow(parseFloat(currentInput), 2)).toString();
+            animateResult();
+            updateDisplay();
+        }
+        
+        function squareRoot() {
+            currentInput = (Math.sqrt(parseFloat(currentInput))).toString();
+            animateResult();
+            updateDisplay();
+        }
+        
+        function sinFunction() {
+            currentInput = (Math.sin(parseFloat(currentInput))).toString();
+            animateResult();
+            updateDisplay();
+        }
+        
+        function cosFunction() {
+            currentInput = (Math.cos(parseFloat(currentInput))).toString();
+            animateResult();
+            updateDisplay();
+        }
+        
+        // Обработка клавиатуры
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') {
+                appendNumber(parseInt(e.key));
+            } else if (e.key === '.') {
+                appendDecimal();
+            } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                setOperation(e.key);
+            } else if (e.key === 'Enter' || e.key === '=') {
+                calculate();
+            } else if (e.key === 'Escape') {
+                clearAll();
+            } else if (e.key === '%') {
+                percentage();
+            }
+        });
     </script>
 </body>
 </html>
