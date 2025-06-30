@@ -1,2 +1,2 @@
 # sigmo
-sigmo
+calculator
